@@ -53,8 +53,6 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
     public void onEnable() {
         instance = this;
 
-        saveDefaultConfig();
-
         Messenger messenger = getServer().getMessenger();
 
         messenger.registerOutgoingPluginChannel(this, MESSAGE_CHANNEL);
