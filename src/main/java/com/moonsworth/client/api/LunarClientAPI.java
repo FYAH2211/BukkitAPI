@@ -266,6 +266,10 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
         sendPacket(player, new LCPacketCooldown(cooldown.getMessage(), cooldown.getDurationMs(), cooldown.getIcon().getId()));
     }
 
+    public void sendGhost(Player player, LCGhost ghost) {
+        sendPacket(player, new LCPacketGhost(ghost.getGhostedPlayers()));
+    }
+
     public void clearCooldown(Player player, LCCooldown cooldown) {
         sendPacket(player, new LCPacketCooldown(cooldown.getMessage(), 0L, cooldown.getIcon().getId()));
     }
