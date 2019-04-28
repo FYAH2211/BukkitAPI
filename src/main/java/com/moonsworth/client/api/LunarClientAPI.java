@@ -58,8 +58,8 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
         messenger.registerOutgoingPluginChannel(this, MESSAGE_CHANNEL);
         messenger.registerIncomingPluginChannel(this, MESSAGE_CHANNEL, (channel, player, bytes) -> {
             LCPacket packet = LCPacket.handle(bytes, player);
-            LCPacketReceivedEvent event;
-            Bukkit.getPluginManager().callEvent(event = new LCPacketReceivedEvent(player, packet));
+            LCPacketReceivedEvent event = new LCPacketReceivedEvent(player, packet);
+            Bukkit.getPluginManager().callEvent(event);
             if (!event.isCancelled()) {
                 packet.process(netHandlerServer);
             }
@@ -267,7 +267,7 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
     }
 
     public void sendGhost(Player player, LCGhost ghost) {
-//        sendPacket(player, new LCPacketGhost(ghost.getGhostedPlayers()));
+        sendPacket(player, new LCPacketGhost(ghost.getGhostedPlayers(), ghost.getUnGhostedPlayers()));
     }
 
     public void clearCooldown(Player player, LCCooldown cooldown) {
