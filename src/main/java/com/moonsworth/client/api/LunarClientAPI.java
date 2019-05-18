@@ -47,6 +47,7 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
     private final Map<UUID, Function<World, String>> worldIdentifiers = new HashMap<>();
     @Setter private LCNetHandler netHandlerServer = new LCNetHandlerImpl();
     private boolean voiceEnabled;
+    @Getter @Setter private boolean holdPackets = false;
     @Getter private List<VoiceChannel> voiceChannels = new ArrayList<>();
 
     @Override
@@ -345,6 +346,10 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      *  message if not.
      */
     public boolean sendPacket(Player player, LCPacket packet) {
+        if (holdPackets) {
+            return false;
+        }
+
         if (isRunningLunarClient(player)) {
             player.sendPluginMessage(this, MESSAGE_CHANNEL, LCPacket.getPacketData(packet));
             Bukkit.getPluginManager().callEvent(new LCPacketSentEvent(player, packet));
