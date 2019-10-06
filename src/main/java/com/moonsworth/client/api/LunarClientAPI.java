@@ -275,6 +275,14 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
         sendPacket(player, new LCPacketCooldown(cooldown.getMessage(), 0L, cooldown.getIcon().getId()));
     }
 
+    public void setBossbar(Player player, String text, float health) {
+        sendPacket(player, new LCPacketBossBar(0, text, health));
+    }
+
+    public void unsetBossbar(Player player) {
+        sendPacket(player, new LCPacketBossBar(1, null, 0));
+    }
+
     public void voiceEnabled(boolean enabled) {
         voiceEnabled = enabled;
     }
