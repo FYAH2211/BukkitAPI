@@ -7,7 +7,6 @@ import com.moonsworth.client.nethandler.client.LCPacketVoiceChannelSwitch;
 import com.moonsworth.client.nethandler.client.LCPacketVoiceMute;
 import com.moonsworth.client.nethandler.server.ILCNetHandlerServer;
 import com.moonsworth.client.nethandler.server.LCPacketVoice;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
@@ -18,13 +17,9 @@ public abstract class LCNetHandler implements ILCNetHandlerServer {
     public void handleVoice(LCPacketClientVoice packet) {
         Player player = packet.getAttachment();
         VoiceChannel channel = LunarClientAPI.getInstance().getPlayerActiveChannels().get(player.getUniqueId());
-        Bukkit.broadcastMessage("Recieved Packet");
         if (channel == null) return;
-        Bukkit.broadcastMessage("Channel is null");
-        // .stream().filter(p -> p != player && !LunarClientAPI.getInstance().playerHasPlayerMuted(p, p) && !LunarClientAPI.getInstance().playerHasPlayerMuted(player, p))
-        Bukkit.broadcastMessage(channel.getPlayersListening().size() + " listening");
-        Bukkit.broadcastMessage(channel.getPlayersInChannel().size() + " in channel");
-        channel.getPlayersListening().forEach(other -> LunarClientAPI.getInstance().sendPacket(other, new LCPacketVoice(player.getUniqueId(), packet.getData())));
+
+        channel.getPlayersListening().stream().filter(p -> p != player && !LunarClientAPI.getInstance().playerHasPlayerMuted(p, p) && !LunarClientAPI.getInstance().playerHasPlayerMuted(player, p)).forEach(other -> LunarClientAPI.getInstance().sendPacket(other, new LCPacketVoice(player.getUniqueId(), packet.getData())));
     }
 
     @Override
