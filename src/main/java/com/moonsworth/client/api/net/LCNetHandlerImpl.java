@@ -27,7 +27,7 @@ public class LCNetHandlerImpl extends LCNetHandler {
     }
 
     @Override
-    public void handleStaffModStatus(LCPacketStaffModStatus packet) {
+    public void handleStaffModStatus(com.moonsworth.client.nethandler.client.LCPacketStaffModStatus lcPacketStaffModStatus) {
 
     }
 
