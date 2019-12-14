@@ -18,6 +18,10 @@
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
+        <repository>
+            <id>moonsworth-mvn</id>
+            <url>https://maven.moonsworth.com/repository/maven-all/</url>
+        </repository>
     </repositories>
 
     <distributionManagement>
