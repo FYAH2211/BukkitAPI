@@ -2,6 +2,8 @@ package com.moonsworth.client.api;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import com.moonsworth.client.api.event.ClientAntiCheatEvent;
 import com.moonsworth.client.api.event.PlayerRegisterLCEvent;
 import com.moonsworth.client.api.event.PlayerUnregisterLCEvent;
 import com.moonsworth.client.api.net.LCNetHandler;
@@ -38,7 +40,8 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
     private static final String MESSAGE_CHANNEL = "Lunar-Client";
 
     @Getter private static LunarClientAPI instance;
-    private final Set<UUID> playersRunningLunarClient = new HashSet<>();
+    private final Set<UUID> playersRunningLunarClient = Sets.newConcurrentHashSet();
+    private final Set<UUID> playersRunningAntiCheat = Sets.newConcurrentHashSet();
 
     private final Set<UUID> playersNotRegistered = new HashSet<>();
     @Getter private final Map<UUID, VoiceChannel> playerActiveChannels = new HashMap<>();
@@ -49,6 +52,7 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
     private boolean voiceEnabled;
     @Getter @Setter private boolean holdPackets = false;
     @Getter private List<VoiceChannel> voiceChannels = new ArrayList<>();
+    private final Map<UUID, ClientAntiCheatEvent.Status> preJoinStatuses = new HashMap<>();
 
     @Override
     public void onEnable() {
@@ -67,6 +71,13 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
         });
 
         getServer().getPluginManager().registerEvents(new Listener() {
+
+            @EventHandler(priority = EventPriority.LOWEST)
+            public void onPlayerJoin(PlayerJoinEvent event) {
+                if (preJoinStatuses.containsKey(event.getPlayer().getUniqueId())) {
+                    anticheatUpdate(event.getPlayer(), preJoinStatuses.remove(event.getPlayer().getUniqueId()));
+                }
+            }
 
             @EventHandler
             public void onRegister(PlayerRegisterChannelEvent event) {
@@ -140,18 +151,22 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
         }, this);
     }
 
-    public String getWorldIdentifier(World world) {
-        String worldIdentifier = world.getUID().toString();
-
-        if (worldIdentifiers.containsKey(world.getUID())) {
-            worldIdentifier = worldIdentifiers.get(world.getUID()).apply(world);
-        }
-
-        return worldIdentifier;
+    public boolean isRunningAntiCheat(Player player) {
+        return isRunningAntiCheat(player.getUniqueId());
     }
 
-    public void registerWorldIdentifier(World world, Function<World, String> identifier) {
-        worldIdentifiers.put(world.getUID(), identifier);
+    public boolean isRunningAntiCheat(UUID playerUuid) {
+        return playersRunningAntiCheat.contains(playerUuid);
+    }
+
+    public void anticheatUpdate(Player player, ClientAntiCheatEvent.Status status) {
+        if (!playersRunningAntiCheat.contains(player.getUniqueId()) && status == ClientAntiCheatEvent.Status.PROTECTED) {
+            playersRunningAntiCheat.add(player.getUniqueId());
+            Bukkit.getPluginManager().callEvent(new ClientAntiCheatEvent(player, status));
+        } else if (playersRunningAntiCheat.contains(player.getUniqueId()) && status == ClientAntiCheatEvent.Status.UNPROTECTED) {
+            playersRunningAntiCheat.remove(player.getUniqueId());
+            Bukkit.getPluginManager().callEvent(new ClientAntiCheatEvent(player, status));
+        }
     }
 
     public boolean isRunningLunarClient(Player player) {
@@ -168,6 +183,20 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
 
     public void sendNotification(Player player, LCNotification notification) {
         sendPacket(player, new LCPacketNotification(notification.getMessage(), notification.getDurationMs(), notification.getLevel().name()));
+    }
+
+    public String getWorldIdentifier(World world) {
+        String worldIdentifier = world.getUID().toString();
+
+        if (worldIdentifiers.containsKey(world.getUID())) {
+            worldIdentifier = worldIdentifiers.get(world.getUID()).apply(world);
+        }
+
+        return worldIdentifier;
+    }
+
+    public void registerWorldIdentifier(World world, Function<World, String> identifier) {
+        worldIdentifiers.put(world.getUID(), identifier);
     }
 
     public void sendNotificationOrFallback(Player player, LCNotification notification, Runnable fallback) {
