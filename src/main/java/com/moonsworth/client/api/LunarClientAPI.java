@@ -1,5 +1,6 @@
 package com.moonsworth.client.api;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -38,6 +39,7 @@ import java.util.stream.Collectors;
 public final class LunarClientAPI extends JavaPlugin implements Listener {
 
     private static final String MESSAGE_CHANNEL = "Lunar-Client";
+    private static final String TRACERT_CHANNEL = "LC|tracert";
 
     @Getter private static LunarClientAPI instance;
     private final Set<UUID> playersRunningLunarClient = Sets.newConcurrentHashSet();
@@ -68,6 +70,11 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
             if (!event.isCancelled()) {
                 packet.process(netHandlerServer);
             }
+        });
+
+        messenger.registerOutgoingPluginChannel(this, TRACERT_CHANNEL);
+        messenger.registerIncomingPluginChannel(this, TRACERT_CHANNEL, (channel, player, bytes) -> {
+            player.sendPluginMessage(this, TRACERT_CHANNEL, "Bukkit: LC API".getBytes(Charsets.UTF_8));
         });
 
         getServer().getPluginManager().registerEvents(new Listener() {
