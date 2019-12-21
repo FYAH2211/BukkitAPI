@@ -74,7 +74,6 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
 
         messenger.registerOutgoingPluginChannel(this, TRACERT_CHANNEL);
         messenger.registerIncomingPluginChannel(this, TRACERT_CHANNEL, (channel, player, bytes) -> {
-            System.out.println("INC ON TRACERT: " + channel + ", " + player + ", " + Arrays.toString(bytes));
             player.sendPluginMessage(this, TRACERT_CHANNEL, "Bukkit: LC API".getBytes(Charsets.UTF_8));
         });
 
