@@ -36,10 +36,13 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public final class LunarClientAPI extends JavaPlugin implements Listener {
 
     private static final String MESSAGE_CHANNEL = "Lunar-Client";
     private static final String TRACERT_CHANNEL = "LC|tracert";
+    private static final String FROM_BUNGEE_CHANNEL = "LC|ACU";
 
     @Getter private static LunarClientAPI instance;
     private final Set<UUID> playersRunningLunarClient = Sets.newConcurrentHashSet();
@@ -75,6 +78,12 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
         messenger.registerOutgoingPluginChannel(this, TRACERT_CHANNEL);
         messenger.registerIncomingPluginChannel(this, TRACERT_CHANNEL, (channel, player, bytes) -> {
             player.sendPluginMessage(this, TRACERT_CHANNEL, "Bukkit: LC API".getBytes(Charsets.UTF_8));
+        });
+
+        messenger.registerIncomingPluginChannel(this, FROM_BUNGEE_CHANNEL, (channel, player, bytes) -> {
+            boolean prot = Boolean.parseBoolean(new String(bytes, UTF_8));
+
+            anticheatUpdate(player, prot ? ClientAntiCheatEvent.Status.PROTECTED : ClientAntiCheatEvent.Status.UNPROTECTED);
         });
 
         getServer().getPluginManager().registerEvents(new Listener() {
