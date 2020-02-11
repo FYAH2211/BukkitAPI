@@ -1,6 +1,6 @@
-name: ${project.name}
-version: ${git.commit.id.abbrev}
+name: LunarClient-API
+version: '1.0'
 description: Lunar Client API
-author: Moonsworth Development Team
+author: Moonsworth, LLC
 main: com.moonsworth.client.api.LunarClientAPI
 load: STARTUP

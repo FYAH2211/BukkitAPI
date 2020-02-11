@@ -1,4 +1,4 @@
-package com.moonsworth.client.api.object;
+package com.lunarclient.bukkitapi.object;
 
 public enum StaffModule {
 

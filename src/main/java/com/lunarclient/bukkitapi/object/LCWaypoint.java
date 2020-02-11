@@ -1,6 +1,6 @@
-package com.moonsworth.client.api.object;
+package com.lunarclient.bukkitapi.object;
 
-import com.moonsworth.client.api.LunarClientAPI;
+import com.lunarclient.bukkitapi.LunarClientAPI;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

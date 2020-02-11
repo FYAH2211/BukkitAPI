@@ -1,7 +1,7 @@
-package com.moonsworth.client.api.net;
+package com.lunarclient.bukkitapi.net;
 
-import com.moonsworth.client.api.LunarClientAPI;
-import com.moonsworth.client.api.voice.VoiceChannel;
+import com.lunarclient.bukkitapi.LunarClientAPI;
+import com.lunarclient.bukkitapi.voice.VoiceChannel;
 import com.moonsworth.client.nethandler.client.LCPacketClientVoice;
 import com.moonsworth.client.nethandler.client.LCPacketVoiceChannelSwitch;
 import com.moonsworth.client.nethandler.client.LCPacketVoiceMute;

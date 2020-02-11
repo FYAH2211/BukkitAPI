@@ -1,18 +1,19 @@
-package com.moonsworth.client.api;
+package com.lunarclient.bukkitapi;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.moonsworth.client.api.event.ClientAntiCheatEvent;
-import com.moonsworth.client.api.event.PlayerRegisterLCEvent;
-import com.moonsworth.client.api.event.PlayerUnregisterLCEvent;
-import com.moonsworth.client.api.net.LCNetHandler;
-import com.moonsworth.client.api.net.LCNetHandlerImpl;
-import com.moonsworth.client.api.net.event.LCPacketReceivedEvent;
-import com.moonsworth.client.api.net.event.LCPacketSentEvent;
+import com.lunarclient.bukkitapi.net.event.LCPacketReceivedEvent;
+import com.lunarclient.bukkitapi.net.event.LCPacketSentEvent;
+import com.lunarclient.bukkitapi.object.*;
+import com.lunarclient.bukkitapi.event.ClientAntiCheatEvent;
+import com.lunarclient.bukkitapi.event.PlayerRegisterLCEvent;
+import com.lunarclient.bukkitapi.event.PlayerUnregisterLCEvent;
+import com.lunarclient.bukkitapi.net.LCNetHandler;
+import com.lunarclient.bukkitapi.net.LCNetHandlerImpl;
 import com.moonsworth.client.api.object.*;
-import com.moonsworth.client.api.voice.VoiceChannel;
+import com.lunarclient.bukkitapi.voice.VoiceChannel;
 import com.moonsworth.client.nethandler.LCPacket;
 import com.moonsworth.client.nethandler.obj.ServerRule;
 import com.moonsworth.client.nethandler.server.*;
@@ -41,7 +42,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public final class LunarClientAPI extends JavaPlugin implements Listener {
 
     private static final String MESSAGE_CHANNEL = "Lunar-Client";
-    private static final String TRACERT_CHANNEL = "LC|tracert";
     private static final String FROM_BUNGEE_CHANNEL = "LC|ACU";
 
     @Getter private static LunarClientAPI instance;
@@ -49,14 +49,9 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
     private final Set<UUID> playersRunningAntiCheat = Sets.newConcurrentHashSet();
 
     private final Set<UUID> playersNotRegistered = new HashSet<>();
-    @Getter private final Map<UUID, VoiceChannel> playerActiveChannels = new HashMap<>();
     private final Map<UUID, List<LCPacket>> packetQueue = new HashMap<>();
-    private final Map<UUID, List<UUID>> muteMap = new HashMap<>();
     private final Map<UUID, Function<World, String>> worldIdentifiers = new HashMap<>();
     @Setter private LCNetHandler netHandlerServer = new LCNetHandlerImpl();
-    private boolean voiceEnabled;
-    @Getter @Setter private boolean holdPackets = false;
-    @Getter private List<VoiceChannel> voiceChannels = new ArrayList<>();
     private final Map<UUID, ClientAntiCheatEvent.Status> preJoinStatuses = new HashMap<>();
 
     @Override
@@ -73,11 +68,6 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
             if (!event.isCancelled()) {
                 packet.process(netHandlerServer);
             }
-        });
-
-        messenger.registerOutgoingPluginChannel(this, TRACERT_CHANNEL);
-        messenger.registerIncomingPluginChannel(this, TRACERT_CHANNEL, (channel, player, bytes) -> {
-            player.sendPluginMessage(this, TRACERT_CHANNEL, "Bukkit: LC API".getBytes(Charsets.UTF_8));
         });
 
         messenger.registerIncomingPluginChannel(this, FROM_BUNGEE_CHANNEL, (channel, player, bytes) -> {
@@ -328,70 +318,6 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
         sendPacket(player, new LCPacketBossBar(1, null, 0));
     }
 
-    public void voiceEnabled(boolean enabled) {
-        voiceEnabled = enabled;
-    }
-
-    public void createVoiceChannels(VoiceChannel... voiceChannels) {
-        this.voiceChannels.addAll(Arrays.asList(voiceChannels));
-        for (VoiceChannel channel : voiceChannels) {
-            for (Player player : channel.getPlayersInChannel()) {
-                sendVoiceChannel(player, channel);
-            }
-        }
-    }
-
-    public void deleteVoiceChannel(VoiceChannel channel) {
-        this.voiceChannels.removeIf(c -> {
-            boolean remove = c == channel;
-            if (remove) {
-                channel.validatePlayers();
-                for (Player player : channel.getPlayersInChannel()) {
-                    sendPacket(player, new LCPacketVoiceChannelRemove(channel.getUuid()));
-                    if (getPlayerActiveChannels().get(player.getUniqueId()) == channel) {
-                        getPlayerActiveChannels().remove(player.getUniqueId());
-                    }
-                }
-            }
-            return remove;
-        });
-    }
-
-    public void deleteVoiceChannel(UUID channelUUID) {
-        getChannel(channelUUID).ifPresent(this::deleteVoiceChannel);
-    }
-
-    public List<VoiceChannel> getPlayerChannels(Player player) {
-        return this.voiceChannels.stream().filter(channel -> channel.hasPlayer(player)).collect(Collectors.toList());
-    }
-
-    public void sendVoiceChannel(Player player, VoiceChannel channel) {
-        channel.validatePlayers();
-        sendPacket(player, new LCPacketVoiceChannel(channel.getUuid(), channel.getName(), channel.toPlayersMap(), channel.toListeningMap()));
-    }
-
-    public void setActiveChannel(Player player, UUID uuid) {
-        getChannel(uuid).ifPresent(channel -> setActiveChannel(player, channel));
-    }
-
-    public Optional<VoiceChannel> getChannel(UUID uuid) {
-        return voiceChannels.stream().filter(channel -> channel.getUuid().equals(uuid)).findFirst();
-    }
-
-    public void setActiveChannel(Player player, VoiceChannel channel) {
-        channel.setActive(player);
-    }
-
-    public void toggleVoiceMute(Player player, UUID other) {
-        if (!muteMap.get(player.getUniqueId()).removeIf(uuid -> uuid.equals(other))) {
-            muteMap.get(player.getUniqueId()).add(other);
-        }
-    }
-
-    public boolean playerHasPlayerMuted(Player player, Player other) {
-        return muteMap.get(other.getUniqueId()).contains(player.getUniqueId());
-    }
-
     /*
      *  This is a boolean to indicate whether or not a LC message was sent.
      *  An example use-case is when you want to send a Lunar Client
@@ -399,10 +325,6 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      *  message if not.
      */
     public boolean sendPacket(Player player, LCPacket packet) {
-        if (holdPackets) {
-            return false;
-        }
-
         if (isRunningLunarClient(player)) {
             player.sendPluginMessage(this, MESSAGE_CHANNEL, LCPacket.getPacketData(packet));
             Bukkit.getPluginManager().callEvent(new LCPacketSentEvent(player, packet));

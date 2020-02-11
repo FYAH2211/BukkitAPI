@@ -1,4 +1,4 @@
-package com.moonsworth.client.api.net;
+package com.lunarclient.bukkitapi.net;
 
 import com.moonsworth.client.nethandler.client.LCPacketEmoteBroadcast;
 import com.moonsworth.client.nethandler.client.LCPacketStaffModStatus;

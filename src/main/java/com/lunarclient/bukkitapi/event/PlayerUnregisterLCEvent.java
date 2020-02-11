@@ -1,4 +1,4 @@
-package com.moonsworth.client.api.event;
+package com.lunarclient.bukkitapi.event;
 
 import lombok.Getter;
 import org.bukkit.entity.Player;
