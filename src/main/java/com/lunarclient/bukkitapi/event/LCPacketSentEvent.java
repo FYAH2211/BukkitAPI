@@ -1,20 +1,19 @@
-package com.lunarclient.bukkitapi.net.event;
+package com.lunarclient.bukkitapi.event;
 
-import com.moonsworth.client.nethandler.LCPacket;
+import com.lunarclient.bukkitapi.nethandler.LCPacket;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 
-public class LCPacketSentEvent extends PlayerEvent {
+public final class LCPacketSentEvent extends PlayerEvent {
 
     @Getter private static HandlerList handlerList = new HandlerList();
 
     @Getter private final LCPacket packet;
 
-    public LCPacketSentEvent(Player who, LCPacket packet) {
-        super(who);
-
+    public LCPacketSentEvent(Player player, LCPacket packet) {
+        super(player);
         this.packet = packet;
     }
 

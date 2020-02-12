@@ -66,7 +66,7 @@
                         <configuration>
                             <artifactSet>
                                 <includes>
-                                    <include>com.lunarclient:bukkitapis-nethandler</include>
+                                    <include>com.lunarclient:bukkitapi-nethandler</include>
                                     <include>io.netty:netty-all</include>
                                 </includes>
                             </artifactSet>

@@ -5,7 +5,7 @@ import lombok.Getter;
 import java.util.List;
 import java.util.UUID;
 
-public class LCGhost {
+public final class LCGhost {
 
     @Getter private final List<UUID> ghostedPlayers;
     @Getter private final List<UUID> unGhostedPlayers;

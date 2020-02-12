@@ -2,20 +2,18 @@ package com.lunarclient.bukkitapi.event;
 
 import lombok.Getter;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerEvent;
 
 /**
  * Called whenever a player registers the LC plugin channel
  */
-public final class PlayerRegisterLCEvent extends Event {
+public final class LCPlayerRegisterEvent extends PlayerEvent {
 
     @Getter private static HandlerList handlerList = new HandlerList();
 
-    @Getter private final Player player;
-
-    public PlayerRegisterLCEvent(Player player) {
-        this.player = player;
+    public LCPlayerRegisterEvent(Player player) {
+        super(player);
     }
 
     @Override

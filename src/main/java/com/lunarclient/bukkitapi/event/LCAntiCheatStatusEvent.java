@@ -5,15 +5,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 
-public final class ClientAntiCheatEvent extends PlayerEvent {
+public final class LCAntiCheatStatusEvent extends PlayerEvent {
 
     @Getter private static final HandlerList handlerList = new HandlerList();
 
     @Getter private final Status status;
 
-    public ClientAntiCheatEvent(Player who, Status status) {
+    public LCAntiCheatStatusEvent(Player who, Status status) {
         super(who);
-
         this.status = status;
     }
 

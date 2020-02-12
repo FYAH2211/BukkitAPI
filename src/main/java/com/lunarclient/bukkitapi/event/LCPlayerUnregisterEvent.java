@@ -2,20 +2,18 @@ package com.lunarclient.bukkitapi.event;
 
 import lombok.Getter;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerEvent;
 
 /**
  * Called whenever a player unregisters the LC plugin channel
  */
-public final class PlayerUnregisterLCEvent extends Event {
+public final class LCPlayerUnregisterEvent extends PlayerEvent {
 
     @Getter private static HandlerList handlerList = new HandlerList();
 
-    @Getter private final Player player;
-
-    public PlayerUnregisterLCEvent(Player player) {
-        this.player = player;
+    public LCPlayerUnregisterEvent(Player player) {
+        super(player);
     }
 
     @Override

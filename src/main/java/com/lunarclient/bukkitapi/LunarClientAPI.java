@@ -1,24 +1,19 @@
 package com.lunarclient.bukkitapi;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.lunarclient.bukkitapi.net.event.LCPacketReceivedEvent;
-import com.lunarclient.bukkitapi.net.event.LCPacketSentEvent;
+import com.lunarclient.bukkitapi.event.*;
+import com.lunarclient.bukkitapi.nethandler.LCPacket;
+import com.lunarclient.bukkitapi.nethandler.client.*;
+import com.lunarclient.bukkitapi.nethandler.client.obj.ServerRule;
+import com.lunarclient.bukkitapi.nethandler.server.LCNetHandlerServer;
+import com.lunarclient.bukkitapi.nethandler.server.LCPacketStaffModStatus;
+import com.lunarclient.bukkitapi.nethandler.shared.LCNetHandler;
+import com.lunarclient.bukkitapi.nethandler.shared.LCPacketEmoteBroadcast;
+import com.lunarclient.bukkitapi.nethandler.shared.LCPacketWaypointAdd;
+import com.lunarclient.bukkitapi.nethandler.shared.LCPacketWaypointRemove;
 import com.lunarclient.bukkitapi.object.*;
-import com.lunarclient.bukkitapi.event.ClientAntiCheatEvent;
-import com.lunarclient.bukkitapi.event.PlayerRegisterLCEvent;
-import com.lunarclient.bukkitapi.event.PlayerUnregisterLCEvent;
-import com.lunarclient.bukkitapi.net.LCNetHandler;
-import com.lunarclient.bukkitapi.net.LCNetHandlerImpl;
-import com.moonsworth.client.api.object.*;
-import com.lunarclient.bukkitapi.voice.VoiceChannel;
-import com.moonsworth.client.nethandler.LCPacket;
-import com.moonsworth.client.nethandler.obj.ServerRule;
-import com.moonsworth.client.nethandler.server.*;
-import com.moonsworth.client.nethandler.shared.LCPacketWaypointAdd;
-import com.moonsworth.client.nethandler.shared.LCPacketWaypointRemove;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
@@ -51,8 +46,30 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
     private final Set<UUID> playersNotRegistered = new HashSet<>();
     private final Map<UUID, List<LCPacket>> packetQueue = new HashMap<>();
     private final Map<UUID, Function<World, String>> worldIdentifiers = new HashMap<>();
-    @Setter private LCNetHandler netHandlerServer = new LCNetHandlerImpl();
-    private final Map<UUID, ClientAntiCheatEvent.Status> preJoinStatuses = new HashMap<>();
+    @Setter private LCNetHandlerServer netHandlerServer = new LCNetHandlerServer() {
+
+        @Override
+        public void handleStaffModStatus(LCPacketStaffModStatus lcPacketStaffModStatus) {
+
+        }
+
+        @Override
+        public void handleAddWaypoint(LCPacketWaypointAdd lcPacketWaypointAdd) {
+
+        }
+
+        @Override
+        public void handleRemoveWaypoint(LCPacketWaypointRemove lcPacketWaypointRemove) {
+
+        }
+
+        @Override
+        public void handleEmote(LCPacketEmoteBroadcast lcPacketEmoteBroadcast) {
+
+        }
+
+    };
+    private final Map<UUID, LCAntiCheatStatusEvent.Status> preJoinStatuses = new HashMap<>();
 
     @Override
     public void onEnable() {
@@ -63,17 +80,14 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
         messenger.registerOutgoingPluginChannel(this, MESSAGE_CHANNEL);
         messenger.registerIncomingPluginChannel(this, MESSAGE_CHANNEL, (channel, player, bytes) -> {
             LCPacket packet = LCPacket.handle(bytes, player);
-            LCPacketReceivedEvent event = new LCPacketReceivedEvent(player, packet);
-            Bukkit.getPluginManager().callEvent(event);
-            if (!event.isCancelled()) {
-                packet.process(netHandlerServer);
-            }
+            Bukkit.getPluginManager().callEvent(new LCPacketReceivedEvent(player, packet));
+            packet.process(netHandlerServer);
         });
 
         messenger.registerIncomingPluginChannel(this, FROM_BUNGEE_CHANNEL, (channel, player, bytes) -> {
             boolean prot = Boolean.parseBoolean(new String(bytes, UTF_8));
 
-            anticheatUpdate(player, prot ? ClientAntiCheatEvent.Status.PROTECTED : ClientAntiCheatEvent.Status.UNPROTECTED);
+            anticheatUpdate(player, prot ? LCAntiCheatStatusEvent.Status.PROTECTED : LCAntiCheatStatusEvent.Status.UNPROTECTED);
         });
 
         getServer().getPluginManager().registerEvents(new Listener() {
@@ -94,12 +108,6 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
                 playersNotRegistered.remove(event.getPlayer().getUniqueId());
                 playersRunningLunarClient.add(event.getPlayer().getUniqueId());
 
-                muteMap.put(event.getPlayer().getUniqueId(), new ArrayList<>());
-
-                if (voiceEnabled) {
-                    sendPacket(event.getPlayer(), new LCPacketServerRule(ServerRule.VOICE_ENABLED, true));
-                }
-
                 if (packetQueue.containsKey(event.getPlayer().getUniqueId())) {
                     packetQueue.get(event.getPlayer().getUniqueId()).forEach(p -> {
                         sendPacket(event.getPlayer(), p);
@@ -108,7 +116,7 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
                     packetQueue.remove(event.getPlayer().getUniqueId());
                 }
 
-                getServer().getPluginManager().callEvent(new PlayerRegisterLCEvent(event.getPlayer()));
+                getServer().getPluginManager().callEvent(new LCPlayerRegisterEvent(event.getPlayer()));
                 updateWorld(event.getPlayer());
             }
 
@@ -116,21 +124,14 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
             public void onUnregister(PlayerUnregisterChannelEvent event) {
                 if (event.getChannel().equals(MESSAGE_CHANNEL)) {
                     playersRunningLunarClient.remove(event.getPlayer().getUniqueId());
-                    playerActiveChannels.remove(event.getPlayer().getUniqueId());
-                    muteMap.remove(event.getPlayer().getUniqueId());
-
-                    getServer().getPluginManager().callEvent(new PlayerUnregisterLCEvent(event.getPlayer()));
+                    getServer().getPluginManager().callEvent(new LCPlayerUnregisterEvent(event.getPlayer()));
                 }
             }
 
             @EventHandler
             public void onUnregister(PlayerQuitEvent event) {
-                getPlayerChannels(event.getPlayer()).forEach(channel -> channel.removePlayer(event.getPlayer()));
-
                 playersRunningLunarClient.remove(event.getPlayer().getUniqueId());
                 playersNotRegistered.remove(event.getPlayer().getUniqueId());
-                playerActiveChannels.remove(event.getPlayer().getUniqueId());
-                muteMap.remove(event.getPlayer().getUniqueId());
             }
 
             @EventHandler(priority = EventPriority.LOWEST)
@@ -165,13 +166,13 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
         return playersRunningAntiCheat.contains(playerUuid);
     }
 
-    public void anticheatUpdate(Player player, ClientAntiCheatEvent.Status status) {
-        if (!playersRunningAntiCheat.contains(player.getUniqueId()) && status == ClientAntiCheatEvent.Status.PROTECTED) {
+    public void anticheatUpdate(Player player, LCAntiCheatStatusEvent.Status status) {
+        if (!playersRunningAntiCheat.contains(player.getUniqueId()) && status == LCAntiCheatStatusEvent.Status.PROTECTED) {
             playersRunningAntiCheat.add(player.getUniqueId());
-            Bukkit.getPluginManager().callEvent(new ClientAntiCheatEvent(player, status));
-        } else if (playersRunningAntiCheat.contains(player.getUniqueId()) && status == ClientAntiCheatEvent.Status.UNPROTECTED) {
+            Bukkit.getPluginManager().callEvent(new LCAntiCheatStatusEvent(player, status));
+        } else if (playersRunningAntiCheat.contains(player.getUniqueId()) && status == LCAntiCheatStatusEvent.Status.UNPROTECTED) {
             playersRunningAntiCheat.remove(player.getUniqueId());
-            Bukkit.getPluginManager().callEvent(new ClientAntiCheatEvent(player, status));
+            Bukkit.getPluginManager().callEvent(new LCAntiCheatStatusEvent(player, status));
         }
     }
 
@@ -222,7 +223,7 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
     }
 
     public void setCompetitiveGame(Player player, boolean isCompetitive) {
-        sendPacket(player, new LCPacketServerRule(ServerRule.COMPETITIVE_GAMEMODE, isCompetitive));
+        sendPacket(player, new LCPacketServerRule(ServerRule.COMPETITIVE_GAME, isCompetitive));
     }
 
     public void giveAllStaffModules(Player player) {
