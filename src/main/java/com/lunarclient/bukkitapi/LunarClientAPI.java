@@ -54,6 +54,21 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
         }
 
         @Override
+        public void handleVoice(LCPacketClientVoice lcPacketClientVoice) {
+            // DO NOT ATTEMPT TO IMPLEMENT
+        }
+
+        @Override
+        public void handleVoiceMute(LCPacketVoiceMute lcPacketVoiceMute) {
+            // DO NOT ATTEMPT TO IMPLEMENT
+        }
+
+        @Override
+        public void handleVoiceChannelSwitch(LCPacketVoiceChannelSwitch lcPacketVoiceChannelSwitch) {
+            // DO NOT ATTEMPT TO IMPLEMENT
+        }
+
+        @Override
         public void handleAddWaypoint(LCPacketWaypointAdd lcPacketWaypointAdd) {
 
         }
@@ -190,6 +205,10 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
 
     public boolean isRunningLunarClient(UUID playerUuid) {
         return playersRunningLunarClient.contains(playerUuid);
+    }
+
+    public Set<Player> getPlayersRunningAntiCheat() {
+        return ImmutableSet.copyOf(playersRunningAntiCheat.stream().map(Bukkit::getPlayer).collect(Collectors.toSet()));
     }
 
     public Set<Player> getPlayersRunningLunarClient() {
