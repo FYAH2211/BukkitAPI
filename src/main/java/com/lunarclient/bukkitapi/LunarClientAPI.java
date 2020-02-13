@@ -84,10 +84,18 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
             packet.process(netHandlerServer);
         });
 
-        messenger.registerIncomingPluginChannel(this, FROM_BUNGEE_CHANNEL, (channel, player, bytes) -> {
-            boolean prot = Boolean.parseBoolean(new String(bytes, UTF_8));
+        messenger.registerIncomingPluginChannel(this, FROM_BUNGEE_CHANNEL, (channel, p, bytes) -> {
+            String[] payload = new String(bytes, UTF_8).split(":");
+            UUID uuid = UUID.fromString(payload[0]);
+            boolean prot = Boolean.parseBoolean(payload[1]);
 
-            anticheatUpdate(player, prot ? LCAntiCheatStatusEvent.Status.PROTECTED : LCAntiCheatStatusEvent.Status.UNPROTECTED);
+            Player player = Bukkit.getPlayer(uuid);
+
+            if (player != null) {
+                anticheatUpdate(player, prot ? LCAntiCheatStatusEvent.Status.PROTECTED : LCAntiCheatStatusEvent.Status.UNPROTECTED);
+            } else {
+                preJoinStatuses.put(uuid, prot ? LCAntiCheatStatusEvent.Status.PROTECTED : LCAntiCheatStatusEvent.Status.UNPROTECTED);
+            }
         });
 
         getServer().getPluginManager().registerEvents(new Listener() {
