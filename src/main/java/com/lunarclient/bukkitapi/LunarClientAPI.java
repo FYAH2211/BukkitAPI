@@ -192,6 +192,10 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
         return playersRunningLunarClient.contains(playerUuid);
     }
 
+    public Set<Player> getPlayersRunningAntiCheat() {
+        return ImmutableSet.copyOf(playersRunningAntiCheat.stream().map(Bukkit::getPlayer).collect(Collectors.toSet()));
+    }
+
     public Set<Player> getPlayersRunningLunarClient() {
         return ImmutableSet.copyOf(playersRunningLunarClient.stream().map(Bukkit::getPlayer).collect(Collectors.toSet()));
     }
