@@ -2,5 +2,5 @@ name: LunarClient-API
 version: '1.0'
 description: Lunar Client API
 author: Moonsworth, LLC
-main: com.moonsworth.client.api.LunarClientAPI
+main: com.lunarclient.bukkitapi.LunarClientAPI
 load: STARTUP

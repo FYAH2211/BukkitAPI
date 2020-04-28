@@ -68,6 +68,7 @@
                                 <includes>
                                     <include>com.lunarclient:bukkitapi-nethandler</include>
                                     <include>io.netty:netty-all</include>
+                                    <include>com.google.code.gson:gson</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
