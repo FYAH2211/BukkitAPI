@@ -1,8 +1,5 @@
 package com.lunarclient.bukkitapi;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.lunarclient.bukkitapi.event.*;
 import com.lunarclient.bukkitapi.nethandler.LCPacket;
 import com.lunarclient.bukkitapi.nethandler.client.*;
@@ -29,6 +26,7 @@ import org.bukkit.util.Vector;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -36,12 +34,41 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 public final class LunarClientAPI extends JavaPlugin implements Listener {
 
-    private static final String MESSAGE_CHANNEL = "Lunar-Client";
-    private static final String FROM_BUNGEE_CHANNEL = "LC|ACU";
+    private static String messageChannel = null;
+
+    private static String getMessageChannel() {
+        if(messageChannel == null) {
+            String bukkitVersion = Bukkit.getServer().getBukkitVersion();
+            bukkitVersion = bukkitVersion.substring(0, bukkitVersion.indexOf('-'));
+            Version ver = new Version(bukkitVersion);
+            if(ver.compareTo(new Version("1.13")) >= 0) {
+                messageChannel = "lunarclient:pm";
+            } else {
+                messageChannel = "Lunar-Client";
+            }
+        }
+        return messageChannel;
+    }
+
+    private static String fromBungeeChannel = null;
+
+    private static String getFromBungeeChannel() {
+        if(fromBungeeChannel == null) {
+            String bukkitVersion = Bukkit.getServer().getBukkitVersion();
+            bukkitVersion = bukkitVersion.substring(0, bukkitVersion.indexOf('-'));
+            Version ver = new Version(bukkitVersion);
+            if(ver.compareTo(new Version("1.13")) >= 0) {
+                fromBungeeChannel = "lunarclient:acu";
+            } else {
+                fromBungeeChannel = "LC|ACU";
+            }
+        }
+        return fromBungeeChannel;
+    }
 
     @Getter private static LunarClientAPI instance;
-    private final Set<UUID> playersRunningLunarClient = Sets.newConcurrentHashSet();
-    private final Set<UUID> playersRunningAntiCheat = Sets.newConcurrentHashSet();
+    private final Set<UUID> playersRunningLunarClient = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Set<UUID> playersRunningAntiCheat = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     private final Set<UUID> playersNotRegistered = new HashSet<>();
     private final Map<UUID, List<LCPacket>> packetQueue = new HashMap<>();
@@ -92,14 +119,14 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
 
         Messenger messenger = getServer().getMessenger();
 
-        messenger.registerOutgoingPluginChannel(this, MESSAGE_CHANNEL);
-        messenger.registerIncomingPluginChannel(this, MESSAGE_CHANNEL, (channel, player, bytes) -> {
+        messenger.registerOutgoingPluginChannel(this, getMessageChannel());
+        messenger.registerIncomingPluginChannel(this, getMessageChannel(), (channel, player, bytes) -> {
             LCPacket packet = LCPacket.handle(bytes, player);
             Bukkit.getPluginManager().callEvent(new LCPacketReceivedEvent(player, packet));
             packet.process(netHandlerServer);
         });
 
-        messenger.registerIncomingPluginChannel(this, FROM_BUNGEE_CHANNEL, (channel, p, bytes) -> {
+        messenger.registerIncomingPluginChannel(this, getFromBungeeChannel(), (channel, p, bytes) -> {
             String[] payload = new String(bytes, UTF_8).split(":");
             UUID uuid = UUID.fromString(payload[0]);
             boolean prot = Boolean.parseBoolean(payload[1]);
@@ -124,7 +151,7 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
 
             @EventHandler
             public void onRegister(PlayerRegisterChannelEvent event) {
-                if (!event.getChannel().equals(MESSAGE_CHANNEL)) {
+                if (!event.getChannel().equals(getMessageChannel())) {
                     return;
                 }
 
@@ -145,7 +172,7 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
 
             @EventHandler
             public void onUnregister(PlayerUnregisterChannelEvent event) {
-                if (event.getChannel().equals(MESSAGE_CHANNEL)) {
+                if (event.getChannel().equals(getMessageChannel())) {
                     playersRunningLunarClient.remove(event.getPlayer().getUniqueId());
                     getServer().getPluginManager().callEvent(new LCPlayerUnregisterEvent(event.getPlayer()));
                 }
@@ -208,11 +235,11 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
     }
 
     public Set<Player> getPlayersRunningAntiCheat() {
-        return ImmutableSet.copyOf(playersRunningAntiCheat.stream().map(Bukkit::getPlayer).collect(Collectors.toSet()));
+        return Collections.unmodifiableSet(playersRunningAntiCheat.stream().map(Bukkit::getPlayer).collect(Collectors.toSet()));
     }
 
     public Set<Player> getPlayersRunningLunarClient() {
-        return ImmutableSet.copyOf(playersRunningLunarClient.stream().map(Bukkit::getPlayer).collect(Collectors.toSet()));
+        return Collections.unmodifiableSet(playersRunningLunarClient.stream().map(Bukkit::getPlayer).collect(Collectors.toSet()));
     }
 
     public void sendNotification(Player player, LCNotification notification) {
@@ -299,7 +326,7 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
     }
 
     public void hideNametag(Player target, Player viewer) {
-        sendPacket(viewer, new LCPacketNametagsOverride(target.getUniqueId(), ImmutableList.of()));
+        sendPacket(viewer, new LCPacketNametagsOverride(target.getUniqueId(), Collections.emptyList()));
     }
 
     public void sendTitle(Player player, TitleType type, String message, Duration displayTime) {
@@ -354,7 +381,7 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      */
     public boolean sendPacket(Player player, LCPacket packet) {
         if (isRunningLunarClient(player)) {
-            player.sendPluginMessage(this, MESSAGE_CHANNEL, LCPacket.getPacketData(packet));
+            player.sendPluginMessage(this, getMessageChannel(), LCPacket.getPacketData(packet));
             Bukkit.getPluginManager().callEvent(new LCPacketSentEvent(player, packet));
             return true;
         } else if (!playersNotRegistered.contains(player.getUniqueId())) {
