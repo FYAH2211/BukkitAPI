@@ -65,6 +65,9 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
         }
         return fromBungeeChannel;
     }
+    private static final String MESSAGE_CHANNEL = "Lunar-Client";
+    private static final String FROM_BUNGEE_CHANNEL = "LC|ACU";
+    private static final boolean EMBED_PROTECTION_DATA_IN_LOGIN = false;
 
     @Getter private static LunarClientAPI instance;
     private final Set<UUID> playersRunningLunarClient = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -147,6 +150,20 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
                 if (preJoinStatuses.containsKey(event.getPlayer().getUniqueId())) {
                     anticheatUpdate(event.getPlayer(), preJoinStatuses.remove(event.getPlayer().getUniqueId()));
                 }
+            }
+
+            @EventHandler
+            public void onPlayerLogin(PlayerLoginEvent event) {
+                if (!EMBED_PROTECTION_DATA_IN_LOGIN) return;
+
+                // hostname should give us host:json:port (set by LCB)
+                String hostname = event.getHostname();
+
+                // extract the json part
+                String data = hostname.substring(hostname.indexOf(':') + 1, hostname.lastIndexOf(':'));
+
+                boolean prot = Boolean.valueOf(data.split(":")[1]);
+                anticheatUpdate(event.getPlayer(), prot ? LCAntiCheatStatusEvent.Status.PROTECTED : LCAntiCheatStatusEvent.Status.UNPROTECTED);
             }
 
             @EventHandler
