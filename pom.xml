@@ -15,14 +15,14 @@
     <distributionManagement>
       <repository>
         <id>lunarclient-public</id>
-        <url>https://lunarclient-556596233875.d.codeartifact.us-east-2.amazonaws.com/maven/lunarclient</url>
+        <url>https://maven.moonsworth.com/repository/lunarclient-public</url>
       </repository>
     </distributionManagement>
 
     <repositories>
         <repository>
             <id>lunarclient-public</id>
-            <url>https://lunarclient-556596233875.d.codeartifact.us-east-2.amazonaws.com/maven/lunarclient</url>
+            <url>https://maven.moonsworth.com/repository/lunarclient-public</url>
         </repository>
         <repository>
             <id>spigotmc</id>

@@ -17,18 +17,11 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
-        
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
-          aws-region: us-east-2
-          
-      - name: Authenticate with CodeArtifact
-        run: echo "CODEARTIFACT_TOKEN=`aws codeartifact get-authorization-token --domain lunarclient --domain-owner 556596233875 --query authorizationToken --output text`" >> $GITHUB_ENV
-        
+
       - name: Build with Maven
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
         run: |
-          echo "<settings><servers><server><id>lunarclient-public</id><username>aws</username><password>${CODEARTIFACT_TOKEN}</password></server></servers></settings>" > ~/.m2/settings.xml
+          echo "<settings><servers><server><id>lunarclient-public</id><username>${MAVEN_USERNAME}</username><password>${MAVEN_PASSWORD}</password></server></servers></settings>" > ~/.m2/settings.xml
           mvn clean deploy -B
