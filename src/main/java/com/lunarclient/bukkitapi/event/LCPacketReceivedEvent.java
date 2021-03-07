@@ -12,6 +12,13 @@ public final class LCPacketReceivedEvent extends PlayerEvent {
 
     @Getter private final LCPacket packet;
 
+    /**
+     * Called when the player sends a {@link LCPacket}
+     * to the server from the client.
+     *
+     * @param player The LunarClient player sending the packet.
+     * @param packet The incoming packet from the client.
+     */
     public LCPacketReceivedEvent(Player player, LCPacket packet) {
         super(player);
         this.packet = packet;

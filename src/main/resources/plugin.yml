@@ -1,6 +1,7 @@
 name: LunarClient-API
-version: '1.0'
-description: Lunar Client API
-author: Moonsworth, LLC
+version: ${git.commit.id.abbrev}
+description: A server interface for the Lunar Client
+author: Moonsworth LLC Development Team
 main: com.lunarclient.bukkitapi.LunarClientAPI
 load: STARTUP
+website: https://www.lunarclient.com/

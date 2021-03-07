@@ -1,6 +1,15 @@
 # Lunar Client Bukkit API
 > Integrate your server with Lunar Client!
 
+## Server Owners:
+> Quick and Easy Setup
+
+ If you are looking for a simple one click solution to integrating LunarClient features then [BukkitImpl](https://github.com/LunarClient/BukkitImpl) is your best bet.
+BukkitImpl is a simple install bukkit plugin which will allow you to enable and disable features at will all from a single `config.yml` file.
+
+## Developers: 
+> Technical Integration Setup
+
 You'll first need to install [BukkitAPI-NetHandler](https://github.com/LunarClient/BukkitAPI-NetHandler), which will
 define the protocol that can be sent between the server and client for this API to use.
 
@@ -84,9 +93,9 @@ sendPacket(event.getPlayer(), new LCPacketModSettings(
 
 #### Changing a Server Rule
 `ServerRule.java` represents a rule your server sets for each client. You can, for example, enable a quitting
-confirmation for competitive games by using `LunarClientAPI.getInstance().setCompetitiveGame(Player, true)`. You can
-also just send a packet directly, like so: `LunarClientAPI.getInstance().sendPacket(Player, new LCPacketServerRule(ServerRule.COMPETITIVE_GAME, isCompetitive));`
-(this would work for any rule)
+confirmation for competitive games by using `LunarClientAPIServerRule.setRule(ServerRule.COMPETITIVE_GAME, true)`. You
+will still need to send these server rules to users using `LunarClientAPIServerRule.sendServerRule(Player)` when they join.
+(This pattern work for all ServerRule)
 
 #### FAQ
 - **Q**: How do I color a Waypoint or Border?
