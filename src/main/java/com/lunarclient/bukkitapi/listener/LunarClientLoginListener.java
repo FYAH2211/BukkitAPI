@@ -29,14 +29,10 @@ public class LunarClientLoginListener implements Listener {
 
     @EventHandler
     public void onRegister(PlayerRegisterChannelEvent event) {
-        if (!event.getChannel().equals(LunarClientAPI.LEGACY_MESSAGE_CHANNEL) && !event.getChannel().equalsIgnoreCase(LunarClientAPI.MODERN_MESSAGE_CHANNEL)) {
+        if (!event.getChannel().equalsIgnoreCase(LunarClientAPI.MESSAGE_CHANNEL)) {
             return;
         }
         Player player = event.getPlayer();
-
-        if (event.getChannel().equalsIgnoreCase(LunarClientAPI.LEGACY_MESSAGE_CHANNEL)) {
-            lunarClientAPI.getLegacyPlayers().add(player.getUniqueId());
-        }
 
         lunarClientAPI.registerPlayer(player);
 
@@ -46,7 +42,7 @@ public class LunarClientLoginListener implements Listener {
 
     @EventHandler
     public void onUnregister(PlayerUnregisterChannelEvent event) {
-        if (event.getChannel().equals(LunarClientAPI.LEGACY_MESSAGE_CHANNEL) || event.getChannel().equalsIgnoreCase(LunarClientAPI.MODERN_MESSAGE_CHANNEL)) {
+        if (event.getChannel().equalsIgnoreCase(LunarClientAPI.MESSAGE_CHANNEL)) {
             lunarClientAPI.unregisterPlayer(event.getPlayer(), false);
         }
     }
