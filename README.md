@@ -20,14 +20,8 @@ To check if someone claims to be running the client, and is therefore able to in
 `LunarClientAPI#isRunningLunarClient(Player|UUID)`. When the API registers a `Player` as running Lunar Client, a
 `LCPlayerRegisterEvent` is fired. When unregistered, a `LCPlayerUnregisterEvent`.
 
-If you are a protected server and wish to verify that someone is running the anti-cheat, use
-`LunarClientAPI#isRunningAntiCheat(Player|UUID)`. Whenever this state changes, a `LCAntiCheatStatusEvent` is fired, 
-so you can watch for people timing out from the anti-cheat server and things like that.
-> If you don't have this integration setup at the proxy level, this
-method will always return `false`. 
-
-You can access a view of `org.bukkit.Player`s currently running the client and/or anti-cheat with these methods:
-`LunarClientAPI#getPlayersRunningLunarClient()` and `LunarClientAPI#getPlayersRunningAntiCheat()`.
+You can access a view of `org.bukkit.Player`s currently running the client with:
+`LunarClientAPI#getPlayersRunningLunarClient()`.
 
 ###### Protocol:
 `LCPacket.java` represents a packet that can be sent to and from players running Lunar Client.
